@@ -1,0 +1,82 @@
+{
+  "dataset": "scifact",
+  "documents": 5183,
+  "queries": 300,
+  "chunk_max_words": 400,
+  "generated_at": "2026-10-13T15:23:14+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26100-SP0"
+  },
+  "indexing": [
+    {
+      "embedder": "hashing-512",
+      "documents": 5183,
+      "chunks": 5297,
+      "seconds": 13.8
+    },
+    {
+      "embedder": "bge-small-en-v1.5",
+      "documents": 5183,
+      "chunks": 5297,
+      "seconds": 2332.74
+    }
+  ],
+  "results": [
+    {
+      "config": "BM25",
+      "ndcg_at_10": 0.6898,
+      "recall_at_10": 0.821,
+      "recall_at_100": 0.9209,
+      "mrr_at_10": 0.6543,
+      "hit_at_5": 0.7733,
+      "query_p50_ms": 9.12,
+      "query_p95_ms": 17.63,
+      "queries": 300
+    },
+    {
+      "config": "Dense: hashing-512",
+      "ndcg_at_10": 0.4011,
+      "recall_at_10": 0.5069,
+      "recall_at_100": 0.6822,
+      "mrr_at_10": 0.3694,
+      "hit_at_5": 0.45,
+      "query_p50_ms": 2.53,
+      "query_p95_ms": 4.74,
+      "queries": 300
+    },
+    {
+      "config": "Hybrid RRF: BM25 + hashing-512",
+      "ndcg_at_10": 0.5494,
+      "recall_at_10": 0.6931,
+      "recall_at_100": 0.9069,
+      "mrr_at_10": 0.5073,
+      "hit_at_5": 0.6233,
+      "query_p50_ms": 14.22,
+      "query_p95_ms": 26.19,
+      "queries": 300
+    },
+    {
+      "config": "Dense: bge-small-en-v1.5",
+      "ndcg_at_10": 0.7127,
+      "recall_at_10": 0.8362,
+      "recall_at_100": 0.945,
+      "mrr_at_10": 0.6822,
+      "hit_at_5": 0.78,
+      "query_p50_ms": 90.01,
+      "query_p95_ms": 133.88,
+      "queries": 300
+    },
+    {
+      "config": "Hybrid RRF: BM25 + bge-small-en-v1.5",
+      "ndcg_at_10": 0.7284,
+      "recall_at_10": 0.8612,
+      "recall_at_100": 0.9683,
+      "mrr_at_10": 0.6932,
+      "hit_at_5": 0.8133,
+      "query_p50_ms": 115.43,
+      "query_p95_ms": 245.15,
+      "queries": 300
+    }
+  ]
+}

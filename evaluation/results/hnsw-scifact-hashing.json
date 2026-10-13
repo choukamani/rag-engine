@@ -1,0 +1,63 @@
+{
+  "dataset": "scifact",
+  "chunks": 5297,
+  "queries": 300,
+  "embedder": "hashing-512",
+  "dimension": 512,
+  "build_seconds": 20.8,
+  "environment": {
+    "python": "3.12.15",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.41"
+  },
+  "results": [
+    {
+      "method": "SELECT 1 (client-server round trip only)",
+      "plan": "-",
+      "recall_at_10": -1.0,
+      "p50_ms": 0.22,
+      "p95_ms": 0.47
+    },
+    {
+      "method": "exact (numpy, in-memory)",
+      "plan": "brute force",
+      "recall_at_10": 1.0,
+      "p50_ms": 4.7,
+      "p95_ms": 17.99
+    },
+    {
+      "method": "pgvector, hnsw.ef_search=10",
+      "plan": "HNSW index scan",
+      "recall_at_10": 0.441,
+      "p50_ms": 3.34,
+      "p95_ms": 6.59
+    },
+    {
+      "method": "pgvector, hnsw.ef_search=20",
+      "plan": "HNSW index scan",
+      "recall_at_10": 0.5867,
+      "p50_ms": 2.87,
+      "p95_ms": 6.57
+    },
+    {
+      "method": "pgvector, hnsw.ef_search=40",
+      "plan": "HNSW index scan",
+      "recall_at_10": 0.725,
+      "p50_ms": 3.69,
+      "p95_ms": 5.92
+    },
+    {
+      "method": "pgvector, hnsw.ef_search=80",
+      "plan": "sequential scan + sort (exact)",
+      "recall_at_10": 1.0,
+      "p50_ms": 42.69,
+      "p95_ms": 77.54
+    },
+    {
+      "method": "pgvector, hnsw.ef_search=160",
+      "plan": "sequential scan + sort (exact)",
+      "recall_at_10": 1.0,
+      "p50_ms": 36.04,
+      "p95_ms": 67.61
+    }
+  ]
+}
