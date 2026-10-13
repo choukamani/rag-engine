@@ -28,6 +28,7 @@ from rag_engine.ports import Matrix, Vector
 
 EF_SEARCH = (10, 20, 40, 80, 160)
 K = 10
+EMBEDDER_NAMES = {"hashing": "hashing-512", "fastembed": "bge-small-en-v1.5"}
 
 
 def query_plan(db: PostgresDatabase, query: Vector, ef_search: int) -> str:
@@ -56,19 +57,27 @@ def main() -> None:  # noqa: PLR0915 - linear benchmark script
     dsn = os.environ.get("RAG_DATABASE_URL", "postgresql://rag:rag@127.0.0.1:5432/rag")
 
     dataset = load_dataset(args.dataset, args.cache / "datasets")
-    ((name, embedder),) = build_embedders([args.embedder]).items()
+    name = EMBEDDER_NAMES[args.embedder]
     chunks = [c for d in dataset.documents for c in ParagraphChunker(400, 40).split(d)]
 
-    cache = args.cache / "embeddings" / f"{dataset.name}-{name}.npy"
-    if cache.exists():
-        matrix: Matrix = np.load(cache)
+    # Embeddings are cached so the benchmark can be re-run (e.g. inside a container next
+    # to PostgreSQL) without the embedding model or its compute cost.
+    doc_cache = args.cache / "embeddings" / f"{dataset.name}-{name}.npy"
+    query_cache = args.cache / "embeddings" / f"{dataset.name}-{name}-queries.npy"
+    if doc_cache.exists() and query_cache.exists():
+        matrix: Matrix = np.load(doc_cache)
+        query_matrix: Matrix = np.load(query_cache)
     else:
+        ((_, embedder),) = build_embedders([args.embedder]).items()
         matrix = embedder.embed_documents([f"{c.title}\n{c.text}" for c in chunks])
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        np.save(cache, matrix)
-    queries = [embedder.embed_query(q) for q in dataset.queries.values()]
+        query_matrix = np.vstack([embedder.embed_query(q) for q in dataset.queries.values()])
+        doc_cache.parent.mkdir(parents=True, exist_ok=True)
+        np.save(doc_cache, matrix)
+        np.save(query_cache, query_matrix)
+    queries: list[Vector] = list(query_matrix)
+    dimension = int(matrix.shape[1])
 
-    exact = InMemoryVectorStore(embedder.dimension)
+    exact = InMemoryVectorStore(dimension)
     exact.upsert(chunks, matrix)
     exact_ms: list[float] = []
     truth: list[set[str]] = []
@@ -77,18 +86,28 @@ def main() -> None:  # noqa: PLR0915 - linear benchmark script
         truth.append({h.chunk.id for h in exact.search(q, K)})
         exact_ms.append((time.perf_counter() - start) * 1000)
 
-    db = PostgresDatabase(dsn, embedder.dimension, table="bench_hnsw")
+    db = PostgresDatabase(dsn, dimension, table="bench_hnsw")
     with db.connection() as conn:
         conn.execute("TRUNCATE bench_hnsw")
     start = time.perf_counter()
     PgVectorStore(db).upsert(chunks, matrix)  # the HNSW index is maintained on insert
     build_s = time.perf_counter() - start
 
-    rows = []
+    with db.connection() as conn:
+        conn.execute("ANALYZE bench_hnsw")  # fresh statistics, as in production
+        round_trip_ms = []
+        for _ in range(len(queries)):
+            start = time.perf_counter()
+            conn.execute("SELECT 1").fetchone()
+            round_trip_ms.append((time.perf_counter() - start) * 1000)
+
+    rows: list[dict[str, str | float]] = []
+    p50, p95 = percentiles(round_trip_ms)
+    rows.append({"method": "SELECT 1 (client-server round trip only)", "plan": "-",
+                 "recall_at_10": -1.0, "p50_ms": p50, "p95_ms": p95})  # fmt: skip
     p50, p95 = percentiles(exact_ms)
-    rows.append(
-        {"method": "exact (numpy, in-memory)", "recall_at_10": 1.0, "p50_ms": p50, "p95_ms": p95}
-    )
+    rows.append({"method": "exact (numpy, in-memory)", "plan": "brute force",
+                 "recall_at_10": 1.0, "p50_ms": p50, "p95_ms": p95})  # fmt: skip
     for ef in EF_SEARCH:
         store = PgVectorStore(db, ef_search=ef)
         for q in queries[:20]:  # warm-up
@@ -109,15 +128,17 @@ def main() -> None:  # noqa: PLR0915 - linear benchmark script
     db.close()
 
     print(f"{dataset.name}: {len(chunks)} chunks, {len(queries)} queries, embedder {name} "
-          f"({embedder.dimension}-d). Insert + HNSW build: {build_s:.1f} s\n")  # fmt: skip
-    print("| Method | Recall@10 vs exact | p50 ms | p95 ms |\n|---|---:|---:|---:|")
+          f"({dimension}-d). Insert + HNSW build: {build_s:.1f} s\n")  # fmt: skip
+    print("| Method | Plan chosen by PostgreSQL | Recall@10 vs exact | p50 ms | p95 ms |")
+    print("|---|---|---:|---:|---:|")
     for r in rows:
-        print(f"| {r['method']} | {r['recall_at_10']:.3f} | {r['p50_ms']} | {r['p95_ms']} |")
+        recall = "-" if str(r["method"]).startswith("SELECT") else f"{r['recall_at_10']:.3f}"
+        print(f"| {r['method']} | {r['plan']} | {recall} | {r['p50_ms']} | {r['p95_ms']} |")
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps({
             "dataset": dataset.name, "chunks": len(chunks), "queries": len(queries),
-            "embedder": name, "dimension": embedder.dimension, "build_seconds": round(build_s, 1),
+            "embedder": name, "dimension": dimension, "build_seconds": round(build_s, 1),
             "environment": {"python": platform.python_version(), "platform": platform.platform()},
             "results": rows,
         }, indent=2) + "\n", encoding="utf-8")  # fmt: skip
