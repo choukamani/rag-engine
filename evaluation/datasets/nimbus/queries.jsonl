@@ -1,0 +1,40 @@
+{"_id": "q1", "text": "How long are deleted files kept before they are gone for good?"}
+{"_id": "q2", "text": "I removed a document by mistake, can I get it back?"}
+{"_id": "q3", "text": "How do I go back to an older version of a spreadsheet?"}
+{"_id": "q4", "text": "How much does the Plus plan cost?"}
+{"_id": "q5", "text": "What happens if I run out of space?"}
+{"_id": "q6", "text": "Do shared folders use my storage?"}
+{"_id": "q7", "text": "What happens to my files if I switch to a cheaper plan?"}
+{"_id": "q8", "text": "Can I get my money back after buying a yearly subscription?"}
+{"_id": "q9", "text": "Why can't I receive login codes by text message?"}
+{"_id": "q10", "text": "I lost my phone and cannot log in because of 2FA"}
+{"_id": "q11", "text": "The password reset email link does not work anymore"}
+{"_id": "q12", "text": "Can Nimbus employees read my files?"}
+{"_id": "q13", "text": "Is my data stored in Europe?"}
+{"_id": "q14", "text": "How do I download all my data for a GDPR request?"}
+{"_id": "q15", "text": "How long does it take for deleted account data to disappear from backups?"}
+{"_id": "q16", "text": "Can I put a password on a link I send to a client?"}
+{"_id": "q17", "text": "What is the difference between viewer and editor?"}
+{"_id": "q18", "text": "How can an admin stop employees from sharing files with outsiders?"}
+{"_id": "q19", "text": "My laptop disk is almost full, can I keep some folders only online?"}
+{"_id": "q20", "text": "Why is there a file called conflicted copy in my folder?"}
+{"_id": "q21", "text": "The sync icon shows a red cross"}
+{"_id": "q22", "text": "Files with very long paths are not uploading on Windows"}
+{"_id": "q23", "text": "Nimbus uses all my internet bandwidth"}
+{"_id": "q24", "text": "Does the desktop client work on Linux?"}
+{"_id": "q25", "text": "How do I automatically back up pictures from my iPhone?"}
+{"_id": "q26", "text": "Can I open my documents on the plane without wifi?"}
+{"_id": "q27", "text": "What is the maximum size of a video I can upload from the browser?"}
+{"_id": "q28", "text": "How do we create accounts for all our employees at once?"}
+{"_id": "q29", "text": "Can we log in with our company Okta accounts?"}
+{"_id": "q30", "text": "Who downloaded a confidential file last week?"}
+{"_id": "q31", "text": "The API returns error 429"}
+{"_id": "q32", "text": "How do I check that a webhook request really comes from Nimbus?"}
+{"_id": "q33", "text": "Can I search inside the text of PDF files?"}
+{"_id": "q34", "text": "Why can't I find files from my vault by their contents?"}
+{"_id": "q35", "text": "Is there phone support for urgent problems?"}
+{"_id": "q36", "text": "What compensation do we get if the service goes down?"}
+{"_id": "q37", "text": "Is planned maintenance counted as downtime?"}
+{"_id": "q38", "text": "What happens to the files of an employee who leaves the company?"}
+{"_id": "q39", "text": "How much storage do I get for free?"}
+{"_id": "q40", "text": "Which login methods protect my account better than a password alone?"}
