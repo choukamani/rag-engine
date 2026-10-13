@@ -1,0 +1,43 @@
+name: rag-engine
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rag}
+      POSTGRES_DB: rag
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d rag"]
+      interval: 5s
+      retries: 20
+
+  api:
+    build: .
+    image: rag-engine:local
+    environment:
+      RAG_STORE: pgvector
+      RAG_DATABASE_URL: postgresql://rag:${POSTGRES_PASSWORD:-rag}@postgres:5432/rag
+      RAG_EMBEDDER: ${RAG_EMBEDDER:-hashing}
+      RAG_LLM: ${RAG_LLM:-extractive}
+      RAG_API_BASE_URL: ${RAG_API_BASE_URL:-https://api.openai.com/v1}
+      RAG_API_KEY: ${RAG_API_KEY:-}
+      RAG_LLM_MODEL: ${RAG_LLM_MODEL:-gpt-4o-mini}
+    ports: ["${API_PORT:-8000}:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  seed:
+    image: rag-engine:local
+    command: ["python", "scripts/seed.py"]
+    environment:
+      RAG_URL: http://api:8000
+    healthcheck:
+      disable: true
+    depends_on:
+      api: { condition: service_healthy }
+    restart: "no"
+
+volumes:
+  pgdata:
